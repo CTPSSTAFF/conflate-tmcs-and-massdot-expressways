@@ -14,8 +14,10 @@ csv_loaded = []
 # List of processed CSV data - 1 record per TMC, ready for output
 csv_processed = []
 
-# Read input CSV file and load it into a list of dicts (i.e., an array of ojbects in JS-speak)
-# Parameter: csv_fn - name of input CSV file (without preceeding path)
+# load_csv: Read input CSV file and load it into a list of dicts (i.e., an array of ojbects in JS-speak)
+#
+# Parameters: in_csv_dir - full path of directory containing input CSV file
+#             in_csv_file - name of input CSV file
 # Return value: list of dicts containing records read from CSV file
 # 
 def load_csv(in_csv_dir, in_csv_file):
@@ -37,6 +39,12 @@ def load_csv(in_csv_dir, in_csv_file):
     return retval
 # def load_csv()
 
+# write_csv: Write, in CSV format, list of dicts containing data to be output
+#
+# Parameters: out_csv_dir - full path of directory into which output CSV file is to be written
+#             out_csv_file - name of output CSV file
+# Return value: none
+#
 def write_csv(out_csv_dir, out_csv_file, output_data):
     open_fn = out_csv_dir + '\\' + out_csv_file
     # Note we have to open the CSV file in 'wb' mode on Windows in order to prevent each record being written out with and EXTRA newline.
@@ -53,7 +61,11 @@ def write_csv(out_csv_dir, out_csv_file, output_data):
     # with
 # def write_csv()
 
-# Return list of unique TMC IDs in the given list of csv_records
+# get_uniq_tmc_ids: Return list of unique TMC IDs in the given list of csv_records
+#
+# Parameter: csv_records - list of dicts from input CSV file
+# Return value: list of unique TMC IDs in the above list
+#
 def get_uniq_tmc_ids(csv_records):
     tmc_lyst_map_obj = map(lambda x: x['tmc'], csv_records)
     tmc_lyst = list(tmc_lyst_map_obj)
@@ -62,7 +74,11 @@ def get_uniq_tmc_ids(csv_records):
     return uniq_tmc_list
 # def get_uniq_tmc_ids() 
 
-# Return list of uniqe TOWN_IDs, sorted in ascending order 
+# get_uniq_town_ids: Return list of uniqe TOWN_IDs, sorted in ascending order 
+#
+# Parameter: list of dicts from input CSV data
+# Return value: list of unique MassGIS TOWN_IDs in this list of dicts
+#
 def get_uniq_town_ids(rec_list):
     town_id_lyst_map_obj = map(lambda x: x['town_id'], rec_list)
     town_id_lyst = list(town_id_lyst_map_obj)
@@ -71,7 +87,11 @@ def get_uniq_town_ids(rec_list):
     return pydash.arrays.sort(uniq_town_id_list)
 # def get_uniq_town_ids()
 
-# Given a sorted list of unique TONW_IDs, return a comma-separated string of town names
+# town_ids_to_town_names: Given a sorted list of unique TONW_IDs, return a comma-separated string of town names
+#
+# Parameter: town_id_list - list of MassGIS TOWN_IDs
+# Return value: return a comma-delimted string of the names of the towns associated with thest TOWN_IDs
+#
 def town_ids_to_town_names(town_id_list):
     town_names_str = ''
     town_names_str += ma_towns.ma_towns[int(town_id_list[0])]['town']
@@ -82,7 +102,11 @@ def town_ids_to_town_names(town_id_list):
     return town_names_str
 # def town_ids_to_town_names()
 
-# Process the records from the input CSV file for one TMC ID
+# process_one_tmc_id: Process the records from the input CSV file for one TMC ID
+#
+# Parameter: rec_list - list of dicts from input CSV file for a single TMC ID
+# Return value: a single dict summarizing the 1..N records for the given TMC ID
+#
 def process_one_tmc_id(rec_list):
     # Fields in retval: tmc, tmctype, from_meas, to_meas, length, 
     #                   route_id, roadnum, direction, firstnm, 
@@ -143,6 +167,15 @@ def process_one_tmc_id(rec_list):
     return retval
 # def process_one_tmc_id()
 
+# main_routine: Given an input CSV file with 1..N records per TMC ID,
+#               generate an output CSV file with a single record per TMC ID.
+#
+# Parameters: in_csv_dir - full path of directory containing input CSV file
+#             in_csv_file - name of input CSV file
+#             out_csv_dir - full path of directory into which output CSV file is to be written
+#             out_csv_dir - name out output CSV file
+# Return value: none
+#
 def main_routine(in_csv_dir, in_csv_file, out_csv_dir, out_csv_file):
     global csv_loaded, csv_processed
     # out_csv_filename = in_csv_filename.replace('_output','_final')
