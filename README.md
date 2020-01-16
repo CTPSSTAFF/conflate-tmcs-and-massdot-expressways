@@ -8,8 +8,8 @@ Usage: generate_tmc_events_for_expressways MassDOT_route_id TMC_list_file
 If list_of_tmcs_file is not provided, all TMCs in the inidcated route will be processed.
 
 This script does the following:
-  1. For a given MassDOT "route" (see below) generate an intermediate
-     CSV file containing the "overlay" of the following events onto it:
+  1. For a given MassDOT "route", generate an intermediate CSV file
+     containing the "overlay" of the following events onto it:
       a. INRIX TMCs
       b. Towns
       c. Speed Limit
