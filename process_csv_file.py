@@ -1,5 +1,5 @@
-# Process CSV file produced by generate_tmc_events.py, producing an output CSV file 
-# with one record per TMC. 
+# Process CSV file produced by tmc_events_for_expressways.py, 
+# producing an output CSV file with one record per TMC. 
 # The input CSV file is expected to have been sorted on from_meas field, in ascending order.
 #
 # Ben Krepp 12/27/2019, 12/31/2019, 01/02/2020, 01/07/2020
@@ -8,7 +8,6 @@ import csv
 import math
 import pydash
 import ma_towns
-
 
 # List of CSV data loaded - 1 to N records per TMC
 csv_loaded = []
@@ -36,7 +35,7 @@ def load_csv(in_csv_dir, in_csv_file):
         # for
      # with
     return retval
-# def
+# def load_csv()
 
 def write_csv(out_csv_dir, out_csv_file, output_data):
     open_fn = out_csv_dir + '\\' + out_csv_file
@@ -52,7 +51,7 @@ def write_csv(out_csv_dir, out_csv_file, output_data):
                               'speed_limit' : row['speed_limit'], 'num_lanes' : row['num_lanes'], 'towns' : row['towns'] })
         # for
     # with
-# def
+# def write_csv()
 
 # Return list of unique TMC IDs in the given list of csv_records
 def get_uniq_tmc_ids(csv_records):
@@ -61,7 +60,7 @@ def get_uniq_tmc_ids(csv_records):
     tmc_set = set(tmc_lyst)
     uniq_tmc_list = list(tmc_set)
     return uniq_tmc_list
-# def  
+# def get_uniq_tmc_ids() 
 
 # Return list of uniqe TOWN_IDs, sorted in ascending order 
 def get_uniq_town_ids(rec_list):
@@ -70,7 +69,7 @@ def get_uniq_town_ids(rec_list):
     town_id_set = set(town_id_lyst)
     uniq_town_id_list = list(town_id_set)
     return pydash.arrays.sort(uniq_town_id_list)
-# def
+# def get_uniq_town_ids()
 
 # Given a sorted list of unique TONW_IDs, return a comma-separated string of town names
 def town_ids_to_town_names(town_id_list):
@@ -81,7 +80,7 @@ def town_ids_to_town_names(town_id_list):
         town_names_str += ', ' + ma_towns.ma_towns[int(town_id)]['town']
     # for
     return town_names_str
-# def
+# def town_ids_to_town_names()
 
 # Process the records from the input CSV file for one TMC ID
 def process_one_tmc_id(rec_list):
@@ -142,7 +141,7 @@ def process_one_tmc_id(rec_list):
     retval['towns'] = '"' + town_names + '"'
     
     return retval
-# def
+# def process_one_tmc_id()
 
 def main_routine(in_csv_dir, in_csv_file, out_csv_dir, out_csv_file):
     global csv_loaded, csv_processed
@@ -160,4 +159,4 @@ def main_routine(in_csv_dir, in_csv_file, out_csv_dir, out_csv_file):
     # for
     pydash.arrays.sort(csv_processed,comparator=None,key=lambda x : x['from_meas'],reverse=False)
     write_csv(out_csv_dir, out_csv_file, csv_processed)
-# def
+# def main_routine()
