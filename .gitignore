@@ -1,0 +1,5 @@
+*.gdb/
+*.tbx
+*.mxd
+csv_intermediate/
+csv_final/
