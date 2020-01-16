@@ -55,8 +55,8 @@ def write_csv(out_csv_dir, out_csv_file, output_data):
 # def
 
 # The following function is currently unused - see write_csv, above
-def write_csv_raw(csv_fn, output_data):
-    open_fn = output_dir + "\\" + "processed_" + csv_fn
+def write_csv_raw(out_csv_dir, out_csv_file, output_data):
+    open_fn = output_dir + '\\' + csv_fn
     outfile = open(open_fn, 'w')
     outstr = 'tmc,tmctype,route_id,roadnu,direction,firstnm,from_meas,to_meas,length,speed_limit,num_lanes, towns\n'
     outfile.write(outstr)
