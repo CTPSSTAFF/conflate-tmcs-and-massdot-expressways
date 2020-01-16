@@ -9,8 +9,6 @@ import math
 import pydash
 import ma_towns
 
-input_dir = "\\\\lilliput\\bkrepp\\data\\_cmp_2019_data_prep\\espressways2\\csv_intermediate"
-output_dir = "\\\\lilliput\\bkrepp\\data\\_cmp_2019_data_prep\\espressways2\\csv_final"
 
 # List of CSV data loaded - 1 to N records per TMC
 csv_loaded = []
@@ -21,8 +19,8 @@ csv_processed = []
 # Parameter: csv_fn - name of input CSV file (without preceeding path)
 # Return value: list of dicts containing records read from CSV file
 # 
-def load_csv(csv_fn):
-    open_fn = input_dir + "\\" + csv_fn
+def load_csv(in_csv_dir, in_csv_file):
+    open_fn = in_csv_dir + '\\' + in_csv_file
     retval = []
     with open(open_fn) as csvfile:
         reader = csv.DictReader(csvfile)
@@ -40,8 +38,8 @@ def load_csv(csv_fn):
     return retval
 # def
 
-def write_csv(csv_fn, output_data):
-    open_fn = output_dir + "\\" + "processed_" + csv_fn
+def write_csv(out_csv_dir, out_csv_file, output_data):
+    open_fn = out_csv_dir + '\\' + out_csv_file
     # Note we have to open the CSV file in 'wb' mode on Windows in order to prevent each record being written out with and EXTRA newline.
     with open(open_fn, 'wb') as csvfile:
         fieldnames = ['tmc', 'tmctype', 'route_id', 'roadnum', 'direction', 'firstnm', \
@@ -161,12 +159,13 @@ def process_one_tmc_id(rec_list):
     return retval
 # def
 
-def main_routine(in_csv_filename):
+def main_routine(in_csv_dir, in_csv_file, out_csv_dir, out_csv_file):
     global csv_loaded, csv_processed
-    out_csv_filename = in_csv_filename.replace('_output','_final')
+    # out_csv_filename = in_csv_filename.replace('_output','_final')
+
     csv_loaded = []
     csv_processed = []
-    csv_loaded = load_csv(in_csv_filename)
+    csv_loaded = load_csv(in_csv_dir, in_csv_file)
     # Get unique TMC IDs
     uniq_tmc_ids = get_uniq_tmc_ids(csv_loaded)
     for tmc_id in uniq_tmc_ids:
@@ -175,5 +174,5 @@ def main_routine(in_csv_filename):
         csv_processed.append(output_rec)
     # for
     pydash.arrays.sort(csv_processed,comparator=None,key=lambda x : x['from_meas'],reverse=False)
-    write_csv(out_csv_filename, csv_processed)
+    write_csv(out_csv_dir, out_csv_file, csv_processed)
 # def
