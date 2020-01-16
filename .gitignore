@@ -1,14 +1,6 @@
-<<<<<<< HEAD
 *.pyc
 *.gdb/
 *.tbx
 *.mxd
 csv_intermediate/
 csv_final/
-=======
-.gdb/
-.tbx
-.mxd
-csv_intermediate/
-csv_final/
->>>>>>> c9ea8a0c65513f187a47e2712f1a2bd7a16de1d8
