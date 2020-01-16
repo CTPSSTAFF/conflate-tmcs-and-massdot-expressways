@@ -102,7 +102,56 @@ else:
 # end_if
 
 
+
+# INPUT DATA: INRIX TMCs, MassDOT routes, MassDOT event layers (speed limit, number of lanes), CTPS towns political boundaries
+#
+# INRIX TMCs
+INRIX_MASSACHUSETTS_TMC_2019 = r'\\lindalino\users\Public\Documents\Public ArcGIS\CTPS data from database servers for ITS\SDE 10.6.sde\mpodata.mpodata.INRIX_MASSACHUSETTS_TMC_2019'
+# Layer containing TMCs selected from the above
+INRIX_TMCS = "INRIX_TMCS"
+
+# MassDOT LRSN_Routes
+MASSDOT_LRSN_Routes_19Dec2019 = r'\\lindalino\users\Public\Documents\Public ArcGIS\CTPS data from database servers for ITS\SDE 10.6.sde\mpodata.mpodata.CTPS_RoadInventory_for_INRIX_2019\mpodata.mpodata.MASSDOT_LRSN_Routes_19Dec2019'
+# Layer containing route selected from the above
+Selected_LRSN_Route = "Selected LRSN Route"
+
+# MassDOT speed limit LRSE
+LRSE_Speed_Limit = r'\\lindalino\users\Public\Documents\Public ArcGIS\CTPS data from database servers for ITS\SDE 10.6.sde\mpodata.mpodata.CTPS_RoadInventory_for_INRIX_2019\mpodata.mpodata.LRSE_Speed_Limit'
+
+# Layer containing data selected from the above
+Speed_Limit_Layer = "Speed Limit Layer"
+
+# MassDOT number of travel lanes LRSE
+LRSE_Number_Travel_Lanes = r'\\lindalino\users\Public\Documents\Public ArcGIS\CTPS data from database servers for ITS\SDE 10.6.sde\mpodata.mpodata.CTPS_RoadInventory_for_INRIX_2019\mpodata.mpodata.LRSE_Number_Travel_Lanes'
+# Layer containing data selected from the above
+Num_Lanes_Layer = "Num Lanes Layer"
+
+# Towns political boundaries
+towns_pb_r = r'\\lindalino\users\Public\Documents\Public ArcGIS\CTPS data from database servers for ITS\SDE 10.6.sde\mpodata.mpodata.boundary\mpodata.mpodata.towns_pb_r'
+
+
 # OUTPUT DATA: Event tables and CSV file
+
+# Path to "base directory" in which all output files are written
+base_dir = r'\\lilliput\groups\Data_Resources\conflate-tmcs-and-massdot-expressways'
+
+# Full paths of geodatabases in which event tables are written
+#
+tmc_event_table_gdb = base_dir + "\\tmc_events.gdb"
+town_event_table_gdb = base_dir + "\\town_events.gdb"
+overlay_events_1_gdb = base_dir + "\\overlay_1.gdb"
+speed_limit_event_table_gdb = base_dir + "\\speed_limit_events.gdb"
+overlay_events_2_gdb = base_dir + "\\overlay_2.gdb"
+num_lanes_event_table_gdb = base_dir + "\\num_lanes_events.gdb"
+overlay_events_3_gdb = base_dir + "\\overlay_3.gdb"
+output_events_gdb = base_dir + "\\output_prep.gdb"
+
+# Full path of directory in which intermediate CSV file is written
+# 
+output_csv_dir_1 = base_dir + "\\csv_intermediate"
+# Full path of directory in which final (i.e., post-processed) CSV file is written
+#
+output_csv_dir_2 = base_dir + "\\csv_final"
 
 # Names of generated event tables and intermediate CSV file
 #
@@ -120,24 +169,6 @@ output_event_table_name = base_table_name + "_events_output"
 output_csv_file_name_1 = base_table_name + "_events_output.csv"
 output_csv_file_name_2 = base_table_name + "_events_final.csv"
 
-# Full paths of geodatabases in which event tables are written
-#
-tmc_event_table_gdb = "\\\\lilliput\\bkrepp\\data\\_cmp_2019_data_prep\\espressways2\\tmc_events_1.gdb"
-town_event_table_gdb = "\\\\lilliput\\bkrepp\\data\\_cmp_2019_data_prep\\espressways2\\town_events.gdb"
-overlay_events_1_gdb = "\\\\lilliput\\bkrepp\\data\\_cmp_2019_data_prep\\espressways2\\overlay_1.gdb"
-speed_limit_event_table_gdb = "\\\\lilliput\\bkrepp\\data\\_cmp_2019_data_prep\\espressways2\\speed_limit_events.gdb"
-overlay_events_2_gdb = "\\\\lilliput\\bkrepp\\data\\_cmp_2019_data_prep\\espressways2\\overlay_2.gdb"
-num_lanes_event_table_gdb = "\\\\lilliput\\bkrepp\\data\\_cmp_2019_data_prep\\espressways2\\num_lanes_events.gdb"
-overlay_events_3_gdb = "\\\\lilliput\\bkrepp\\data\\_cmp_2019_data_prep\\espressways2\\overlay_3.gdb"
-output_events_gdb = "\\\\lilliput\\bkrepp\\data\\_cmp_2019_data_prep\\espressways2\\output_prep.gdb"
-
-# Full path of directory in which intermediate CSV file is written
-# 
-output_csv_dir_1 = "\\\\lilliput\\bkrepp\\data\\_cmp_2019_data_prep\\espressways2\\csv_intermediate"
-# Full path of directory in which final (i.e., post-processed) CSV file is written
-#
-output_csv_dir_2 = "\\\\lilliput\\bkrepp\\data\\_cmp_2019_data_prep\\espressways2\\csv_final"
-
 # Full paths of generated event tables
 #
 tmc_event_table = tmc_event_table_gdb + "\\" + tmc_event_table_name 
@@ -152,35 +183,12 @@ output_event_table = output_events_gdb + "\\" + output_event_table_name
 # Full path of generated intermediate CSV file
 #
 output_csv_1 = output_csv_dir_1 + "\\" + output_csv_file_name_1
-
-# INPUT DATA: INRIX TMCs, MassDOT routes, MassDOT event layers (speed limit, number of lanes), CTPS towns political boundaries
 #
-# INRIX TMCs
-INRIX_MASSACHUSETTS_TMC_2019 = r'Database Connections\CTPS 10.6.sde\mpodata.mpodata.INRIX_MASSACHUSETTS_TMC_2019'
-# Layer containing TMCs selected from the above
-INRIX_TMCS = "INRIX_TMCS"
+# Full path of generated final CSV file
+output_csv_2 = output_csv_dir_2 + "\\" + output_csv_file_name_2
 
-# MassDOT LRSN_Routes
-MASSDOT_LRSN_Routes_19Dec2019 = r'Database Connections\CTPS 10.6.sde\mpodata.mpodata.CTPS_RoadInventory_for_INRIX_2019\mpodata.mpodata.MASSDOT_LRSN_Routes_19Dec2019'
-# Layer containing route selected from the above
-Selected_LRSN_Route = "Selected LRSN Route"
 
-# MassDOT speed limit LRSE
-LRSE_Speed_Limit = r'Database Connections\CTPS 10.6.sde\mpodata.mpodata.CTPS_RoadInventory_for_INRIX_2019\mpodata.mpodata.LRSE_Speed_Limit'
-
-# Layer containing data selected from the above
-Speed_Limit_Layer = "Speed Limit Layer"
-
-# MassDOT number of travel lanes LRSE
-LRSE_Number_Travel_Lanes = r'Database Connections\CTPS 10.6.sde\mpodata.mpodata.CTPS_RoadInventory_for_INRIX_2019\mpodata.mpodata.LRSE_Number_Travel_Lanes'
-# Layer containing data selected from the above
-Num_Lanes_Layer = "Num Lanes Layer"
-
-# Towns political boundaries
-towns_pb_r = r'Database Connections\CTPS 10.6.sde\mpodata.mpodata.boundary\mpodata.mpodata.towns_pb_r'
-
-# Name of "table view" created of overlay_events_3 (see below)
-overlay_events_3_View = "overlay_event_table_3_View"
+# Processing, per se, begins here
 
 # Make Feature Layer "INRIX_TMCS": from INRIX TMCs, select TMCs using the INRIX_query_string
 arcpy.MakeFeatureLayer_management(INRIX_MASSACHUSETTS_TMC_2019, INRIX_TMCS, INRIX_query_string, 
@@ -281,9 +289,10 @@ arcpy.OverlayRouteEvents_lr(overlay_events_2, "route_id LINE from_meas to_meas",
                             overlay_events_3, overlay_event_table_3_properties, "ZERO", "FIELDS", "INDEX")
 
 # HERE: overlay_events_3 has been generated
-#       Perform miscellaneous cleanup operations, and generate CSV file
+#       Perform miscellaneous cleanup operations, and generate intermediate CSV file
 
-# Make Table View of overlay_events_3
+# Make Table View of overlay_events_3)
+overlay_events_3_View = "overlay_event_table_3_View"
 arcpy.MakeTableView_management(overlay_events_3, overlay_events_3_View, "", "", "objectid objectid VISIBLE NONE;route_id route_id VISIBLE NONE;from_meas from_meas VISIBLE NONE;to_meas to_meas VISIBLE NONE;tmc tmc VISIBLE NONE;tmctype tmctype VISIBLE NONE;roadnum roadnum VISIBLE NONE;firstnm firstnm VISIBLE NONE;direction direction VISIBLE NONE;town town VISIBLE NONE;town_id town_id VISIBLE NONE;st_area_shape_ st_area_shape_ VISIBLE NONE;st_perimeter_shape_ st_perimeter_shape_ VISIBLE NONE;route_id_1 route_id_1 VISIBLE NONE;speed_lim speed_lim VISIBLE NONE;route_id_12 route_id_12 VISIBLE NONE;num_lanes num_lanes VISIBLE NONE;st_length_shape_ st_length_shape_ VISIBLE NONE")
 
 # The MassDOT routes and events layers use TOWNS_POLYM to define town boundaries. We're using towns_pb instead (in order to inlcude water, etc. in town boundaries.)
@@ -314,10 +323,8 @@ arcpy.SelectLayerByAttribute_management(overlay_events_3_View, "CLEAR_SELECTION"
 
 # Sort the table in ascending order on from _meas, and add a "calc_len" (calculated length) field to each record, 
 # and calculate its value appropriately.
-# These operations could be performed in the subsequent processing of the generated CSV file, but we do them here anyway.
-
-# Sort overlay_events_3 on from_meas, in ascending order
 # output is in output_event_table
+# These operations could be performed in the subsequent processing of the generated CSV file, but we do them here anyway.
 arcpy.Sort_management(overlay_events_3_View, output_event_table, "from_meas ASCENDING;tmc ASCENDING", "UR")
 
 arcpy.AddMessage("Generating output event table.")
@@ -331,7 +338,7 @@ arcpy.AddMessage("Exporting output event table to CSV file.")
 # Export final_event_table to CSV file
 #
 # Code generated by model:
-arcpy.TableToTable_conversion(output_event_table, output_csv_dir_1, output_csv_file_name_1, "", "route_id \"route_id\" true true false 16 Text 0 0 ,First,#,\\\\lilliput\\bkrepp\\data\\_cmp_2019_data_prep\\espressways2\\output_prep.gdb\\i_90_wb_events_output,route_id,-1,-1;from_meas \"from_meas\" true true false 8 Double 0 0 ,First,#,\\\\lilliput\\bkrepp\\data\\_cmp_2019_data_prep\\espressways2\\output_prep.gdb\\i_90_wb_events_output,from_meas,-1,-1;to_meas \"to_meas\" true true false 8 Double 0 0 ,First,#,\\\\lilliput\\bkrepp\\data\\_cmp_2019_data_prep\\espressways2\\output_prep.gdb\\i_90_wb_events_output,to_meas,-1,-1;tmc \"tmc\" true true false 9 Text 0 0 ,First,#,\\\\lilliput\\bkrepp\\data\\_cmp_2019_data_prep\\espressways2\\output_prep.gdb\\i_90_wb_events_output,tmc,-1,-1;tmctype \"tmctype\" true true false 5 Text 0 0 ,First,#,\\\\lilliput\\bkrepp\\data\\_cmp_2019_data_prep\\espressways2\\output_prep.gdb\\i_90_wb_events_output,tmctype,-1,-1;roadnum \"roadnum\" true true false 100 Text 0 0 ,First,#,\\\\lilliput\\bkrepp\\data\\_cmp_2019_data_prep\\espressways2\\output_prep.gdb\\i_90_wb_events_output,roadnum,-1,-1;firstnm \"firstnm\" true true false 120 Text 0 0 ,First,#,\\\\lilliput\\bkrepp\\data\\_cmp_2019_data_prep\\espressways2\\output_prep.gdb\\i_90_wb_events_output,firstnm,-1,-1;direction \"direction\" true true false 120 Text 0 0 ,First,#,\\\\lilliput\\bkrepp\\data\\_cmp_2019_data_prep\\espressways2\\output_prep.gdb\\i_90_wb_events_output,direction,-1,-1;town \"TOWN\" true true false 255 Text 0 0 ,First,#,\\\\lilliput\\bkrepp\\data\\_cmp_2019_data_prep\\espressways2\\output_prep.gdb\\i_90_wb_events_output,town,-1,-1;town_id \"TOWN_ID\" true true false 4 Long 0 0 ,First,#,\\\\lilliput\\bkrepp\\data\\_cmp_2019_data_prep\\espressways2\\output_prep.gdb\\i_90_wb_events_output,town_id,-1,-1;speed_lim \"Speed Limit\" true true false 2 Short 0 0 ,First,#,\\\\lilliput\\bkrepp\\data\\_cmp_2019_data_prep\\espressways2\\output_prep.gdb\\i_90_wb_events_output,speed_lim,-1,-1;num_lanes \"Number of Travel Lanes\" true true false 4 Long 0 0 ,First,#,\\\\lilliput\\bkrepp\\data\\_cmp_2019_data_prep\\espressways2\\output_prep.gdb\\i_90_wb_events_output,num_lanes,-1,-1;calc_len \"calc_len\" true true false 0 Double 0 0 ,First,#,\\\\lilliput\\bkrepp\\data\\_cmp_2019_data_prep\\espressways2\\output_prep.gdb\\i_90_wb_events_output,calc_len,-1,-1", "")
+arcpy.TableToTable_conversion(output_event_table, output_csv_dir_1, output_csv_file_name_1)
 #
 #
 # ... and if that doesn't work, the following should:
@@ -349,7 +356,6 @@ arcpy.TableToTable_conversion(output_event_table, output_csv_dir_1, output_csv_f
 #
 arcpy.AddMessage("Finished executing phase 1: " + MassDOT_route_id + ". Intermediate output is in: " + output_csv_dir_1 + "\\" + output_csv_file_name_1)
 
-arcpy.AddMessage("Processing CSV file.")
-# Note: We pass IN the name of the above-generated INTERMEDIATE CSV file
-process_csv_file.main_routine(output_csv_file_name_1)
+arcpy.AddMessage("Post-processing CSV file.")
+process_csv_file.main_routine(output_csv_dir_1, output_csv_file_name_1, output_csv_dir_2, output_csv_file_name_2)
 arcpy.AddMessage("Finished executing phase 2: " + MassDOT_route_id + ". Final output is in: " + output_csv_dir_2 + "\\" + output_csv_file_name_2)
