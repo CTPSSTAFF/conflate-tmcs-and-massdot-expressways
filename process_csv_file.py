@@ -2,17 +2,13 @@
 # producing an output CSV file with one record per TMC. 
 # The input CSV file is expected to have been sorted on from_meas field, in ascending order.
 #
-# Ben Krepp 12/27/2019, 12/31/2019, 01/02/2020, 01/07/2020
+# Ben Krepp 12/27/2019, 12/31/2019, 01/02/2020, 01/07/2020, 01/16/2020, 01/17/2020
 
 import csv
 import math
 import pydash
 import ma_towns
 
-# List of CSV data loaded - 1 to N records per TMC
-csv_loaded = []
-# List of processed CSV data - 1 record per TMC, ready for output
-csv_processed = []
 
 # load_csv: Read input CSV file and load it into a list of dicts (i.e., an array of ojbects in JS-speak)
 #
@@ -177,10 +173,9 @@ def process_one_tmc_id(rec_list):
 # Return value: none
 #
 def main_routine(in_csv_dir, in_csv_file, out_csv_dir, out_csv_file):
-    global csv_loaded, csv_processed
-    # out_csv_filename = in_csv_filename.replace('_output','_final')
-
+    # List of CSV data loaded - 1 to N records per TMC
     csv_loaded = []
+    # List of processed CSV data - 1 record per TMC, ready for output
     csv_processed = []
     csv_loaded = load_csv(in_csv_dir, in_csv_file)
     # Get unique TMC IDs
