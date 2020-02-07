@@ -63,8 +63,15 @@ def get_inrix_attrs(MassDOT_route_id):
     # end_if
     retval['roadnum'] = roadnum
     direction = massdot_to_inrix_direction[pieces[1]]
+    # HACK: Handle INRIX incorrectly regarding I-291 as a NB/SB rather than an EB/WB route.
+    if roadnum == 'I-291':
+        if direction == 'Eastbound':
+            direction = 'Northbound'
+        else:
+            direction = 'Southbound'
+    # end_if
     retval['direction'] = direction
-    return retval
+    return retval   
 # def get_inrix_attrs()
        
 # Script parameters
