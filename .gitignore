@@ -7,3 +7,5 @@ csv_final/
 *.xml
 *.csv
 *.ini
+*.xlsx
+*.xls
