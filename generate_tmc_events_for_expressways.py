@@ -23,7 +23,7 @@
 # in order to notify the user if this library is not installed, and then exit.
 # The fourth resides in the same directory as this script and process_csv_file.py.
 #
-# Ben Krepp 12/31/2019, 01/02/2020, 01/06/2020-01/08/2020
+# Ben Krepp 12/31/2019, 01/02/2020, 01/06/2020-01/08/2020, 02/12/2020
 # ---------------------------------------------------------------------------
 
 import arcpy
@@ -423,6 +423,12 @@ if TMC_list_file:
 arcpy.SelectLayerByAttribute_management(overlay_events_3_View, "NEW_SELECTION", "from_meas < 0")
 arcpy.CalculateField_management(overlay_events_3_View, "from_meas", "0.0", "PYTHON_9.3", "")
 arcpy.SelectLayerByAttribute_management(overlay_events_3_View, "CLEAR_SELECTION", "")
+
+# Remove zero-length records (i.e., records for which from_meas == to_meas), if any
+arcpy.SelectLayerByAttribute_management(overlay_events_3_View, "NEW_SELECTION", "from_meas = to_meas")
+arcpy.DeleteRows_management(overlay_events_3_View)
+arcpy.SelectLayerByAttribute_management(overlay_events_3_View, "CLEAR_SELECTION", "")
+
 
 # Sort the table in ascending order on from _meas, and add a "calc_len" (calculated length) field to each record, 
 # and calculate its value appropriately.
