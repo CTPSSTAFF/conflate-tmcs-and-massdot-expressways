@@ -90,6 +90,14 @@ TMC_list_file = arcpy.GetParameterAsText(1)
 if TMC_list_file != '':
     arcpy.AddMessage("TMC_list_file = " + TMC_list_file)
 # end_if
+
+# Third parameter, XY tolerance for locating TMC events, is OPTIONAL; it defaults to 10 (meters).
+# Change: 2/12/2020: removed this parameter.
+# XY_tolerance = TMC_list_file = arcpy.GetParameterAsText(2)
+# if XY_tolerance == '#' or not XY_tolerance:
+#    XY_tolerance = '10'
+#
+# arcpy.AddMessage("XY tolerance = " + XY_tolerance)
  
 if not TMC_list_file:
     INRIX_attrs = get_inrix_attrs(MassDOT_route_id)
@@ -142,6 +150,9 @@ towns_pb_r = r'\\lindalino\users\Public\Documents\Public ArcGIS\CTPS data from d
 # Path to "base directory" in which all output files are written
 base_dir = r'\\lilliput\groups\Data_Resources\conflate-tmcs-and-massdot-expressways'
 
+# Full path to geodatabase containing "template" TMC event table.
+tmc_template_event_table_gdb =  base_dir + "\\tmc_event_table_template.gdb"
+
 # Full paths of geodatabases in which event tables are written
 #
 tmc_event_table_gdb = base_dir + "\\tmc_events.gdb"
@@ -163,6 +174,9 @@ output_csv_dir_2 = base_dir + "\\csv_final"
 # Names of generated event tables and intermediate CSV file
 #
 base_table_name = MassDOT_route_id.lower().replace(' ','_')
+# Raw (i.e., unsorted) TMC event table name
+tmc_event_table_name_raw = base_table_name + "_events_tmc_raw"
+# Sorted TMC event table name
 tmc_event_table_name = base_table_name + "_events_tmc"
 town_event_table_name = base_table_name + "_events_town"
 overlay_event_table_1_name = base_table_name + "_events_overlay_1"
@@ -176,8 +190,14 @@ output_event_table_name = base_table_name + "_events_output"
 output_csv_file_name_1 = base_table_name + "_events_output.csv"
 output_csv_file_name_2 = base_table_name + "_events_final.csv"
 
+# Full path of "template" TMC event table
+tmc_template_event_table = tmc_template_event_table_gdb +"\\TEMPLATE_events_tmc"
+
 # Full paths of generated event tables
 #
+# Raw (i.e., unsorted) TMC event table
+tmc_event_table_raw = tmc_event_table_gdb + "\\" + tmc_event_table_name_raw
+# Sorted TMC event table
 tmc_event_table = tmc_event_table_gdb + "\\" + tmc_event_table_name 
 town_event_table = town_event_table_gdb + "\\" + town_event_table_name
 overlay_events_1 = overlay_events_1_gdb + "\\" + overlay_event_table_1_name
@@ -207,14 +227,90 @@ arcpy.MakeFeatureLayer_management(MASSDOT_LRSN_Routes_19Dec2019, Selected_LRSN_R
 
 arcpy.AddMessage("Generating TMC events.")
 
+# Generate TMC events: "locate" TMCs along MassDOT routes
+#
+# NOTE: We found that the out-of-the-box ESRI 'Locate Features Along Routes' doesn't quite do the job we need.
+# The original code using the ESRI tool is reatained here as a comment, for reference.
+# The code we implmented to perform locating TMC events along the MassDOT routes is found below.
+#
+# *** Beginning of original code:
+#
 # Locate Features Along Routes: locate selected TMCs along selected MassDOT route
 # Output is: tmc_event_table
-# Note XY tolerance of ***40 meters***. This was found to be necessary even for express highways, e.g., case of I-95 @ new bridge over Merrimack River.
-tmc_event_table_properties = "route_id LINE from_meas to_meas"
-arcpy.LocateFeaturesAlongRoutes_lr(INRIX_TMCS, Selected_LRSN_Route, "route_id", "40 Meters", tmc_event_table, tmc_event_table_properties, 
-                                   "FIRST", "DISTANCE", "ZERO", "FIELDS", "M_DIRECTON")
+# Note: An XY tolerance of ***40*** meters was found to be necessary some cases, e.g., I-95 @ new bridge over Merrimack River.
+# tmc_event_table_properties = "route_id LINE from_meas to_meas"
+# arcpy.LocateFeaturesAlongRoutes_lr(INRIX_TMCS, Selected_LRSN_Route, "route_id", XY_tolerance + " Meters", tmc_event_table, #                                    tmc_event_table_properties, "FIRST", "DISTANCE", "ZERO", "FIELDS", "M_DIRECTON")
 # Delete un-needed fields from tmc_event_table
-arcpy.DeleteField_management(tmc_event_table, "linrtmc;frc;lenmiles;strtlat;strtlong;endlat;endlong;roadname;country;state;zipcode")
+# arcpy.DeleteField_management(tmc_event_table, "linrtmc;frc;lenmiles;strtlat;strtlong;endlat;endlong;roadname;country;state;zipcode")
+#
+# *** End of original code
+# *** Beginning of replacement code:
+#
+# Make a copy of the "template" TMC event table into which the raw (unsorted) TMC events will be written
+arcpy.CreateTable_management(tmc_event_table_gdb, tmc_event_table_name_raw, tmc_template_event_table)
+
+# Get the geometry of the selected LRSN route
+route_sc = arcpy.da.SearchCursor(Selected_LRSN_Route,['route_id', 'shape@'])
+# Indices in the vector of fields (i.e., attributes) read in from the TMC FC
+route_feat_route_id_ix = 0; route_feat_shape_ix = 1
+route_feat = route_sc.next()
+
+
+# Names of fields (i.e., attributes) read in from the TMC FC
+tmc_fc_fieldnames = ['tmc', 'tmctype','roadnum', 'firstnm', 'direction', 'shape@']
+# Indices in the vector of fields (i.e., attributes) read in from the TMC FC
+tmc_feat_tmc_id_ix = 0;  tmc_feat_tmctype_ix = 1; tmc_feat_roadnum_ix = 2; tmc_feat_firstnm_ix = 3; 
+tmc_feat_direction_ix = 4; tmc_feat_shape_ix = 5
+
+# Names of output event table fields
+et_fieldnames = ['route_id', 'from_meas', 'to_meas', 'tmc', 'tmctype', 'roadnum', 'firstnm', 'direction']
+# Indices of fields in output event table (actually, this isn't needed)
+et_route_id_ix = 0; et_from_meas_ix = 1; et_to_meas_ix = 2; et_tmc_ix = 3; 
+et_tmctype_ix = 4; et_roadnum_ix = 5; et_firstnm_ix = 6; et_direction_ix = 7
+
+# "Insert" cursor for output event table
+out_csr = arcpy.da.InsertCursor(tmc_event_table_raw, et_fieldnames)
+
+# Loop over the selected TMC features, which are to be located on the selected route feature
+#
+for tmc_feat in arcpy.da.SearchCursor(INRIX_TMCS, tmc_fc_fieldnames):
+    tmc_id = tmc_feat[tmc_feat_tmc_id_ix]
+
+    # debug/trace
+    print tmc_id + ', ' + str(from_meas) + ', ' + str(to_meas)    
+    
+    tmc_feat_fromPoint = tmc_feat[tmc_feat_shape_ix].firstPoint
+    tmc_feat_toPoint = tmc_feat[tmc_feat_shape_ix].lastPoint
+
+    projected_fromPtGeom = route_feat[route_feat_shape_ix].queryPointAndDistance(tmc_feat_fromPoint)
+    projected_toPtGeom = route_feat[route_feat_shape_ix].queryPointAndDistance(tmc_feat_toPoint)
+
+    from_meas = projected_fromPtGeom[0].firstPoint.M if (projected_fromPtGeom[0].firstPoint.M >= 0.0) else 0.0
+    to_meas = projected_toPtGeom[0].firstPoint.M if (projected_toPtGeom[0].firstPoint.M >= 0.0) else 0.0
+       
+    # Do not write out zero-length events
+    if (from_meas >= 0.0 and to_meas > 0.0) and (from_meas != to_meas):
+        roh = [route_feat[route_feat_route_id_ix], from_meas, to_meas, 
+               tmc_feat[tmc_feat_tmc_id_ix], tmc_feat[tmc_feat_tmctype_ix], 
+               tmc_feat[tmc_feat_roadnum_ix], tmc_feat[tmc_feat_firstnm_ix], tmc_feat[tmc_feat_direction_ix]]   
+        out_csr.insertRow(roh)
+        arcpy.AddMessage('Inserted event: ' + tmc_id + ', ' + str(from_meas) + ', ' + str(to_meas))
+    else:
+        # Zero-length event
+        arcpy.AddMessage('Zero length event discarded: ' + tmc_id + ', ' + str(from_meas) + ', ' + str(to_meas))
+    # if
+# for tmc_feat
+
+# Close the insert cursor - not exactly the best choice of API name!
+del out_csr 
+arcpy.AddMessage('Closed insert cursor.')
+
+
+# Sort the raw TMC event table in ascending order on the 'from_meas' field
+arcpy.Sort_management(tmc_event_table_raw, tmc_event_table, [["from_meas", "ASCENDING"]])
+#
+#
+# *** End of replacement code for 'Locate Features Along Routes'
 
 arcpy.AddMessage("Generating town events.")
 
@@ -298,7 +394,7 @@ arcpy.OverlayRouteEvents_lr(overlay_events_2, "route_id LINE from_meas to_meas",
 # HERE: overlay_events_3 has been generated
 #       Perform miscellaneous cleanup operations, and generate intermediate CSV file
 
-# Make Table View of overlay_events_3)
+# Make Table View of overlay_events_3
 overlay_events_3_View = "overlay_event_table_3_View"
 arcpy.MakeTableView_management(overlay_events_3, overlay_events_3_View, "", "", "objectid objectid VISIBLE NONE;route_id route_id VISIBLE NONE;from_meas from_meas VISIBLE NONE;to_meas to_meas VISIBLE NONE;tmc tmc VISIBLE NONE;tmctype tmctype VISIBLE NONE;roadnum roadnum VISIBLE NONE;firstnm firstnm VISIBLE NONE;direction direction VISIBLE NONE;town town VISIBLE NONE;town_id town_id VISIBLE NONE;st_area_shape_ st_area_shape_ VISIBLE NONE;st_perimeter_shape_ st_perimeter_shape_ VISIBLE NONE;route_id_1 route_id_1 VISIBLE NONE;speed_lim speed_lim VISIBLE NONE;route_id_12 route_id_12 VISIBLE NONE;num_lanes num_lanes VISIBLE NONE;st_length_shape_ st_length_shape_ VISIBLE NONE")
 
@@ -339,6 +435,9 @@ arcpy.AddMessage("Generating output event table.")
 # Add a "calc_len" field to output_event_table, and calc it to (to_meas - from_meas)
 arcpy.AddField_management(output_event_table, "calc_len", "DOUBLE", "", "", "", "", "NULLABLE", "NON_REQUIRED", "")
 arcpy.CalculateField_management(output_event_table, "calc_len", "!to_meas! - !from_meas!", "PYTHON_9.3", "")
+
+# ??? HERE ??? - Prune records with calc_len == 0.0 from output event table
+
 
 arcpy.AddMessage("Exporting output event table to CSV file.")
 
