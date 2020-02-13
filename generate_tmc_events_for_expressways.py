@@ -23,7 +23,8 @@
 # in order to notify the user if this library is not installed, and then exit.
 # The fourth resides in the same directory as this script and process_csv_file.py.
 #
-# Ben Krepp 12/31/2019, 01/02/2020, 01/06/2020-01/08/2020, 02/12/2020
+# Ben Krepp, attending metaphysician
+# 12/31/2019, 01/02/2020, 01/06/2020-01/08/2020, 02/12/2020
 # ---------------------------------------------------------------------------
 
 import arcpy
@@ -230,8 +231,8 @@ arcpy.AddMessage("Generating TMC events.")
 # Generate TMC events: "locate" TMCs along MassDOT routes
 #
 # NOTE: We found that the out-of-the-box ESRI 'Locate Features Along Routes' doesn't quite do the job we need.
-# The original code using the ESRI tool is reatained here as a comment, for reference.
-# The code we implmented to perform locating TMC events along the MassDOT routes is found below.
+#       The original code using the ESRI tool is reatained here as a comment, for reference.
+#      The code we implmented to perform locating TMC events along the MassDOT routes is found below.
 #
 # *** Beginning of original code:
 #
@@ -239,21 +240,25 @@ arcpy.AddMessage("Generating TMC events.")
 # Output is: tmc_event_table
 # Note: An XY tolerance of ***40*** meters was found to be necessary some cases, e.g., I-95 @ new bridge over Merrimack River.
 # tmc_event_table_properties = "route_id LINE from_meas to_meas"
-# arcpy.LocateFeaturesAlongRoutes_lr(INRIX_TMCS, Selected_LRSN_Route, "route_id", XY_tolerance + " Meters", tmc_event_table, #                                    tmc_event_table_properties, "FIRST", "DISTANCE", "ZERO", "FIELDS", "M_DIRECTON")
+# arcpy.LocateFeaturesAlongRoutes_lr(INRIX_TMCS, Selected_LRSN_Route, "route_id", XY_tolerance + " Meters", tmc_event_table, 
+#                                    tmc_event_table_properties, "FIRST", "DISTANCE", "ZERO", "FIELDS", "M_DIRECTON")
 # Delete un-needed fields from tmc_event_table
 # arcpy.DeleteField_management(tmc_event_table, "linrtmc;frc;lenmiles;strtlat;strtlong;endlat;endlong;roadname;country;state;zipcode")
 #
 # *** End of original code
+#
 # *** Beginning of replacement code:
 #
 # Make a copy of the "template" TMC event table into which the raw (unsorted) TMC events will be written
 arcpy.CreateTable_management(tmc_event_table_gdb, tmc_event_table_name_raw, tmc_template_event_table)
 
+# Indices in the vector of fields (i.e., attributes) to be read in from the TMC FC
+route_feat_route_id_ix = 0; route_feat_shape_ix = 1
+#
 # Get the geometry of the selected LRSN route
 route_sc = arcpy.da.SearchCursor(Selected_LRSN_Route,['route_id', 'shape@'])
-# Indices in the vector of fields (i.e., attributes) read in from the TMC FC
-route_feat_route_id_ix = 0; route_feat_shape_ix = 1
 route_feat = route_sc.next()
+route_feat_last_m_value = route_feat[route_feat_shape_ix].lastPoint.M
 
 
 # Names of fields (i.e., attributes) read in from the TMC FC
@@ -275,18 +280,33 @@ out_csr = arcpy.da.InsertCursor(tmc_event_table_raw, et_fieldnames)
 #
 for tmc_feat in arcpy.da.SearchCursor(INRIX_TMCS, tmc_fc_fieldnames):
     tmc_id = tmc_feat[tmc_feat_tmc_id_ix]
-
-    # debug/trace
-    print tmc_id + ', ' + str(from_meas) + ', ' + str(to_meas)    
-    
+ 
     tmc_feat_fromPoint = tmc_feat[tmc_feat_shape_ix].firstPoint
     tmc_feat_toPoint = tmc_feat[tmc_feat_shape_ix].lastPoint
 
     projected_fromPtGeom = route_feat[route_feat_shape_ix].queryPointAndDistance(tmc_feat_fromPoint)
     projected_toPtGeom = route_feat[route_feat_shape_ix].queryPointAndDistance(tmc_feat_toPoint)
 
-    from_meas = projected_fromPtGeom[0].firstPoint.M if (projected_fromPtGeom[0].firstPoint.M >= 0.0) else 0.0
-    to_meas = projected_toPtGeom[0].firstPoint.M if (projected_toPtGeom[0].firstPoint.M >= 0.0) else 0.0
+    # If the M-value of the "projected" point lies beyond either the beginning or the end of the route,
+    # force it to the M-value of the beginning of the route (0.0) or to route_feat_last_m_value, respectively.
+    if projected_fromPtGeom[0].firstPoint.M >= 0.0:
+        from_meas = projected_fromPtGeom[0].firstPoint.M if (projected_fromPtGeom[0].firstPoint.M <= route_feat_last_m_value) else route_feat_last_m_value
+    else:
+        from_meas = 0.0
+    # end_if
+    
+    if projected_toPtGeom[0].firstPoint.M >= 0.0:
+        to_meas = projected_toPtGeom[0].firstPoint.M if (projected_toPtGeom[0].firstPoint.M <= route_feat_last_m_value) else route_feat_last_m_value
+    else:
+        to_meas = 0.0
+    # end_if
+    
+    # OLD CODE:
+    # from_meas = projected_fromPtGeom[0].firstPoint.M if (projected_fromPtGeom[0].firstPoint.M >= 0.0) else 0.0
+    # to_meas = projected_toPtGeom[0].firstPoint.M if (projected_toPtGeom[0].firstPoint.M >= 0.0) else 0.0
+    
+    # debug/trace
+    # print 'Processing ' + tmc_id + ', ' + str(from_meas) + ', ' + str(to_meas)      
        
     # Do not write out zero-length events
     if (from_meas >= 0.0 and to_meas > 0.0) and (from_meas != to_meas):
@@ -297,7 +317,7 @@ for tmc_feat in arcpy.da.SearchCursor(INRIX_TMCS, tmc_fc_fieldnames):
         arcpy.AddMessage('Inserted event: ' + tmc_id + ', ' + str(from_meas) + ', ' + str(to_meas))
     else:
         # Zero-length event
-        arcpy.AddMessage('Zero length event discarded: ' + tmc_id + ', ' + str(from_meas) + ', ' + str(to_meas))
+        arcpy.AddMessage('Discarded zero-length event: ' + tmc_id + ', ' + str(from_meas) + ', ' + str(to_meas))
     # if
 # for tmc_feat
 
@@ -425,12 +445,13 @@ arcpy.CalculateField_management(overlay_events_3_View, "from_meas", "0.0", "PYTH
 arcpy.SelectLayerByAttribute_management(overlay_events_3_View, "CLEAR_SELECTION", "")
 
 # Remove zero-length records (i.e., records for which from_meas == to_meas), if any
+arcpy.AddMessage("Pruning zero-length records.")
 arcpy.SelectLayerByAttribute_management(overlay_events_3_View, "NEW_SELECTION", "from_meas = to_meas")
 arcpy.DeleteRows_management(overlay_events_3_View)
 arcpy.SelectLayerByAttribute_management(overlay_events_3_View, "CLEAR_SELECTION", "")
 
 
-# Sort the table in ascending order on from _meas, and add a "calc_len" (calculated length) field to each record, 
+# Sort the table in ascending order on from_meas, and add a "calc_len" (calculated length) field to each record, 
 # and calculate its value appropriately.
 # output is in output_event_table
 # These operations could be performed in the subsequent processing of the generated CSV file, but we do them here anyway.
@@ -442,8 +463,6 @@ arcpy.AddMessage("Generating output event table.")
 arcpy.AddField_management(output_event_table, "calc_len", "DOUBLE", "", "", "", "", "NULLABLE", "NON_REQUIRED", "")
 arcpy.CalculateField_management(output_event_table, "calc_len", "!to_meas! - !from_meas!", "PYTHON_9.3", "")
 
-# ??? HERE ??? - Prune records with calc_len == 0.0 from output event table
-
 
 arcpy.AddMessage("Exporting output event table to CSV file.")
 
@@ -453,7 +472,7 @@ arcpy.AddMessage("Exporting output event table to CSV file.")
 arcpy.TableToTable_conversion(output_event_table, output_csv_dir_1, output_csv_file_name_1)
 #
 #
-# ... and if that doesn't work, the following should:
+# ... and if that doesn't work, the following has been known to do so in the past:
 # (Source: http://gis.stackexchange.com/questions/109008/python-script-to-export-csv-tables-from-gdb)
 #
 # fields = arcpy.ListFields(output_event_table)
