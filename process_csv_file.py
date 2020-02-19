@@ -98,17 +98,21 @@ def get_uniq_town_ids(rec_list):
     return pydash.arrays.sort(uniq_town_id_list)
 # def get_uniq_town_ids()
 
-# town_ids_to_town_names: Given a sorted list of unique TONW_IDs, return a comma-separated string of town names
+# town_ids_to_town_names: Given a sorted list of unique TONW_IDs, return a "+"-separated string of town names
 #
 # Parameter: town_id_list - list of MassGIS TOWN_IDs
-# Return value: return a comma-delimted string of the names of the towns associated with thest TOWN_IDs
+# Return value: return a "+"-delimted string of the names of the towns associated with thest TOWN_IDs
+#
+# Note: We delimit the town names with "+" rather than "," since this data is destinted to be a field in
+#       a CSV (i.e., COMMA-separated values) file; delimiting the town names with commas will confuse 
+#       code and other apps concerned with parsing the CSV file.
 #
 def town_ids_to_town_names(town_id_list):
     town_names_str = ''
     town_names_str += ma_towns.ma_towns[int(town_id_list[0])]['town']
     del town_id_list[0]
     for town_id in town_id_list:
-        town_names_str += ', ' + ma_towns.ma_towns[int(town_id)]['town']
+        town_names_str += '+ ' + ma_towns.ma_towns[int(town_id)]['town']
     # for
     return town_names_str
 # def town_ids_to_town_names()
@@ -198,7 +202,7 @@ def process_one_tmc_id(rec_list):
     uniq_town_ids = get_uniq_town_ids(rec_list)
     # Then, turn this list into a nice, comma-separated string of town names
     town_names = town_ids_to_town_names(uniq_town_ids)
-    retval['towns'] = '"' + town_names + '"'
+    retval['towns'] = town_names
     
     return retval
 # def process_one_tmc_id()
