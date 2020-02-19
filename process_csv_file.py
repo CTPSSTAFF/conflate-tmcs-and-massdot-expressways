@@ -9,6 +9,21 @@ import math
 import pydash
 import ma_towns
 
+try:
+    import arcpy
+    arcpy_present = True
+except:
+    arcpy_present = False
+# end_try_except
+    
+def report(msg):
+    if arcpy_present:
+        arcpy.AddMessage(msg)
+    else:
+        print(msg)
+    # end_if
+# end_def
+
 
 # load_csv: Read input CSV file and load it into a list of dicts (i.e., an array of ojbects in JS-speak)
 #
@@ -107,7 +122,8 @@ def process_one_tmc_id(rec_list):
     # Fields in retval: tmc, tmctype, from_meas, to_meas, length, 
     #                   route_id, roadnum, direction, firstnm, 
     #                   towns, town_ids (?), speed_limit, num_lanes
-    print("Processing TMC " + rec_list[0]['tmc'] + " : " + str(len(rec_list)) + " records.")
+    
+    report("Processing TMC " + rec_list[0]['tmc'] + " : " + str(len(rec_list)) + " records.")
     
     # Sort rec_list on from_meas in ascending order
     pydash.arrays.sort(rec_list,comparator=None,key=lambda x : x['from_meas'],reverse=False)
@@ -133,25 +149,49 @@ def process_one_tmc_id(rec_list):
 
     # Speed limit
     # Sum of weighted speed_lim in each record; weighting is by record's fraction of total TMC length,
-    # rounded to a multiple of 5 MPH
-    speed_limit = 0
-    for rec in rec_list:
-        partial_sl = float(rec['speed_lim']) * (rec['calc_len'] / total_length)
-        speed_limit += partial_sl
-    # for    
-    round_to_multiple_of_5 = lambda x: 5 * round(x/5)
-    retval['speed_limit'] = round_to_multiple_of_5(speed_limit)
+    # rounded to a multiple of 5 MPH.
+    # NOTE: Exclude records for which 'speed_lim' is 0 or 99: 0 indicates a place in which no 'speed_lim'
+    #       event exisits; 99 is an illegal speed limit and is used by MassDOT to indicate "no value".
+    #       (MassDOT is currently frowning on using <Null> event values.)
+    #
+    sl_rec_list = pydash.collections.filter_(rec_list, lambda rec: rec['speed_lim'] != 0 and rec['speed_lim'] != 99)
+    sl_total_length = pydash.collections.reduce_(sl_rec_list, lambda total, x: total + x['calc_len'], 0.0)   
+
+    if len(sl_rec_list) == 0:
+        report("    No usable speed limit records for TMC " +  rec_list[0]['tmc']) 
+        sl_for_tmc = -1
+    else:
+        speed_limit = 0
+        for rec in sl_rec_list:
+            partial_sl = float(rec['speed_lim']) * (rec['calc_len'] / sl_total_length)
+            speed_limit += partial_sl
+        # end_for    
+        round_to_multiple_of_5 = lambda x: 5 * round(x/5)
+        sl_for_tmc = round_to_multiple_of_5(speed_limit)
+    # end_if
+    retval['speed_limit'] = sl_for_tmc
     
     # Number of lanes
     # Sum of weighted num_lanes in each record (weighting is by record's fraction of total TMC length),
-    # "rounded" (using math.ceil) to an integer
-    num_lanes = 0
-    for rec in rec_list:
-        partial_nl = float(rec['num_lanes']) * (rec['calc_len'] / total_length)
-        num_lanes += partial_nl
-    # for
-    num_lanes = math.ceil(num_lanes)
-    retval['num_lanes'] = num_lanes
+    # "rounded" (using math.ceil) to an integer.
+    # NOTE: Exclude recors for which 'num_lanes' is 0: 0 indicates a place in which no 'num_lanes'
+    #       event exists.
+    #
+    nl_rec_list = pydash.collections.filter_(rec_list, lambda rec: rec['num_lanes'] != 0)
+    nl_total_length = pydash.collections.reduce_(nl_rec_list, lambda total, x: total + x['calc_len'], 0.0)
+    
+    if len(nl_rec_list) == 0:
+        report("    No usable number of lanes records for TMC " +  rec_list[0]['tmc']) 
+        nl_for_tmc = -1
+    else:   
+        num_lanes = 0
+        for rec in nl_rec_list:
+            partial_nl = float(rec['num_lanes']) * (rec['calc_len'] / nl_total_length)
+            num_lanes += partial_nl
+        # end_for
+        nl_for_tmc = math.ceil(num_lanes)
+    # end_if
+    retval['num_lanes'] = nl_for_tmc
     
     # Town names
     # First, get sorted list of unique town_ids
