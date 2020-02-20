@@ -23,6 +23,7 @@ Note that process_csv_file.py depends upon the following modules:
     2. math
     3. pydash
     4. ma_towns
+
 The first two are standard modules, part of any standard Python installation.
 The third, pydash", requires explicit installation.
 We include an explicit "try: import pydash..." at the beginning of this module, 
