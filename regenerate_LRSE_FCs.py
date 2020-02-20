@@ -13,12 +13,10 @@
 import arcpy
 
 # Full list of routes to process...
-route_list = [ 'I90 EB', 'I90 WB', 'I93 NB', 'I93 SB', 'I95 NB', 'I95 SB', 'I290 EB', 'I290 WB', 'I495 NB', 'I495 SB',
-               'US1 NB', 'US1 SB', 'US3 NB', 'US3 SB', 'US44 EB', 'US44 WB', 'SR2 EB', 'SR2 WB', 'SR3 NB', 'SR3 SB',
-               'SR24 NB', 'SR24 SB', 'SR140 NB', 'SR140 SB', 'SR146 NB', 'SR146 SB', 'N087 NB', 'N482 SB' ]
+ route_list = [ 'I90 EB', 'I90 WB', 'I93 NB', 'I93 SB', 'I95 NB', 'I95 SB', 'I290 EB', 'I290 WB', 'I495 NB', 'I495 SB',
+                'US1 NB', 'US1 SB', 'US3 NB', 'US3 SB', 'US44 EB', 'US44 WB', 'SR2 EB', 'SR2 WB', 'SR3 NB', 'SR3 SB',
+                'SR24 NB', 'SR24 SB', 'SR140 NB', 'SR140 SB', 'SR146 NB', 'SR146 SB', 'SR213 EB', 'SR213 WB', 'N087 NB', 'N482 SB' ]
                
-# ... but we'll start with just one pair that is known to be problematical and one pair that should be Kosher anyway:
-# route_list = [ 'SR2 EB', 'SR2 WB', 'I90 EB', 'I90 WB' ]
 
 # MassDOT LRSN_Routes - the route geometry here is assumed to be definitive
 #
