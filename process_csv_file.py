@@ -9,6 +9,8 @@ import math
 import pydash
 import ma_towns
 
+# The following is to allow this script to be run stand-alone outside of ArcMap.
+#
 try:
     import arcpy
     arcpy_present = True
@@ -24,6 +26,8 @@ def report(msg):
     # end_if
 # end_def
 
+# Accumulate list of any TMCs for which no usable attribute records were found.
+problem_tmcs = []
 
 # load_csv: Read input CSV file and load it into a list of dicts (i.e., an array of ojbects in JS-speak)
 #
@@ -123,6 +127,7 @@ def town_ids_to_town_names(town_id_list):
 # Return value: a single dict summarizing the 1..N records for the given TMC ID
 #
 def process_one_tmc_id(rec_list):
+    global problem_tmcs
     # Fields in retval: tmc, tmctype, from_meas, to_meas, length, 
     #                   route_id, roadnum, direction, firstnm, 
     #                   towns, town_ids (?), speed_limit, num_lanes
@@ -164,6 +169,7 @@ def process_one_tmc_id(rec_list):
     if len(sl_rec_list) == 0:
         report("    No usable speed limit records for TMC " +  rec_list[0]['tmc']) 
         sl_for_tmc = -1
+        problem_tmcs.append(rec_list[0]['tmc'])
     else:
         speed_limit = 0
         for rec in sl_rec_list:
@@ -187,6 +193,7 @@ def process_one_tmc_id(rec_list):
     if len(nl_rec_list) == 0:
         report("    No usable number of lanes records for TMC " +  rec_list[0]['tmc']) 
         nl_for_tmc = -1
+        problem_tmcs.append(rec_list[0]['tmc'])
     else:   
         num_lanes = 0
         for rec in nl_rec_list:
@@ -200,7 +207,7 @@ def process_one_tmc_id(rec_list):
     # Town names
     # First, get sorted list of unique town_ids
     uniq_town_ids = get_uniq_town_ids(rec_list)
-    # Then, turn this list into a nice, comma-separated string of town names
+    # Then, turn this list into a nice, "+"-separated string of town names
     town_names = town_ids_to_town_names(uniq_town_ids)
     retval['towns'] = town_names
     
@@ -217,6 +224,7 @@ def process_one_tmc_id(rec_list):
 # Return value: none
 #
 def main_routine(in_csv_dir, in_csv_file, out_csv_dir, out_csv_file):
+    global problem_tmcs
     # List of CSV data loaded - 1 to N records per TMC
     csv_loaded = []
     # List of processed CSV data - 1 record per TMC, ready for output
@@ -231,4 +239,10 @@ def main_routine(in_csv_dir, in_csv_file, out_csv_dir, out_csv_file):
     # for
     pydash.arrays.sort(csv_processed,comparator=None,key=lambda x : x['from_meas'],reverse=False)
     write_csv(out_csv_dir, out_csv_file, csv_processed)
+    if len(problem_tmcs) > 0:
+        report("*** No usable attribute value(s) were found for the following TMCs:")
+        for tmc in problem_tmcs:
+            report("    " + tmc)
+        # end_for
+    # end_if
 # def main_routine()
