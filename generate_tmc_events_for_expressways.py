@@ -24,7 +24,7 @@
 # The fourth resides in the same directory as this script and process_csv_file.py.
 #
 # Ben Krepp, attending metaphysician
-# 12/31/2019, 01/02/2020, 01/06/2020-01/08/2020, 02/12/2020, 02/19/2020
+# 12/31/2019, 01/02/2020, 01/06/2020-01/08/2020, 02/12/2020, 02/19/2020, 02/20/2020
 # ---------------------------------------------------------------------------
 
 import arcpy
@@ -118,6 +118,10 @@ else:
 # end_if
 
 
+# Path to "base directory" in which all output files are written,
+# and in which the re-generated LRSE FCs are found
+#
+base_dir = r'\\lilliput\groups\Data_Resources\conflate-tmcs-and-massdot-expressways'
 
 # INPUT DATA: INRIX TMCs, MassDOT routes, MassDOT event layers (speed limit, number of lanes), CTPS towns political boundaries
 #
@@ -131,14 +135,22 @@ MASSDOT_LRSN_Routes_19Dec2019 = r'\\lindalino\users\Public\Documents\Public ArcG
 # Layer containing route selected from the above
 Selected_LRSN_Route = "Selected LRSN Route"
 
-# MassDOT speed limit LRSE
-LRSE_Speed_Limit = r'\\lindalino\users\Public\Documents\Public ArcGIS\CTPS data from database servers for ITS\SDE 10.6.sde\mpodata.mpodata.CTPS_RoadInventory_for_INRIX_2019\mpodata.mpodata.LRSE_Speed_Limit'
+# MassDOT speed limit LRSE - use FC regenerated from event table and LRSN rather than raw MassDOT FC
+#
+# LRSE_Speed_Limit = r'\\lindalino\users\Public\Documents\Public ArcGIS\CTPS data from database servers for ITS\SDE  
+#10.6.sde\mpodata.mpodata.CTPS_RoadInventory_for_INRIX_2019\mpodata.mpodata.LRSE_Speed_Limit'
+#
+LRSE_Speed_Limit = base_dir + '\\LRSE_Speed_Limit_FC_redux.gdb\\LRSE_Speed_Limit'
 
 # Layer containing data selected from the above
 Speed_Limit_Layer = "Speed Limit Layer"
 
-# MassDOT number of travel lanes LRSE
-LRSE_Number_Travel_Lanes = r'\\lindalino\users\Public\Documents\Public ArcGIS\CTPS data from database servers for ITS\SDE 10.6.sde\mpodata.mpodata.CTPS_RoadInventory_for_INRIX_2019\mpodata.mpodata.LRSE_Number_Travel_Lanes'
+# MassDOT number of travel lanes LRSE - use FC regenerated from event table and LRSN rather than raw MassDOT FC
+#
+# LRSE_Number_Travel_Lanes = r'\\lindalino\users\Public\Documents\Public ArcGIS\CTPS data from database servers for ITS\SDE #10.6.sde\mpodata.mpodata.CTPS_RoadInventory_for_INRIX_2019\mpodata.mpodata.LRSE_Number_Travel_Lanes'
+#
+LRSE_Number_Travel_Lanes = base_dir + '\\LRSE_Number_Travel_Lanes_FC_redux.gdb\LRSE_Number_Travel_Lanes'
+
 # Layer containing data selected from the above
 Num_Lanes_Layer = "Num Lanes Layer"
 
@@ -147,9 +159,6 @@ towns_pb_r = r'\\lindalino\users\Public\Documents\Public ArcGIS\CTPS data from d
 
 
 # OUTPUT DATA: Event tables and CSV file
-
-# Path to "base directory" in which all output files are written
-base_dir = r'\\lilliput\groups\Data_Resources\conflate-tmcs-and-massdot-expressways'
 
 # Full path to geodatabase containing "template" TMC event table.
 tmc_template_event_table_gdb =  base_dir + "\\tmc_event_table_template.gdb"
@@ -358,10 +367,10 @@ arcpy.OverlayRouteEvents_lr(tmc_event_table, "route_id LINE from_meas to_meas",
 arcpy.MakeFeatureLayer_management(LRSE_Speed_Limit, Speed_Limit_Layer, "to_date IS NULL", "", "objectid objectid HIDDEN NONE;from_date from_date HIDDEN NONE;to_date to_date HIDDEN NONE;event_id event_id HIDDEN NONE;route_id route_id VISIBLE NONE;from_measure from_measure VISIBLE NONE;to_measure to_measure VISIBLE NONE;speed_lim speed_lim VISIBLE NONE;op_dir_sl op_dir_sl VISIBLE NONE;created_by created_by HIDDEN NONE;date_created date_created HIDDEN NONE;edited_by edited_by HIDDEN NONE;date_edited date_edited HIDDEN NONE;locerror locerror HIDDEN NONE;globalid globalid HIDDEN NONE;regulation regulation HIDDEN NONE;amendment amendment HIDDEN NONE;time_per time_per HIDDEN NONE;shape shape HIDDEN NONE;st_length(shape) st_length(shape) HIDDEN NONE")
 
 # Select Layer By Location: from Speed_Limit_Layer, select records that lie WITHIN the Selected_LRSN_Route
-# arcpy.SelectLayerByLocation_management(Speed_Limit_Layer, "WITHIN", Selected_LRSN_Route, "", "NEW_SELECTION", "NOT_INVERT")
+arcpy.SelectLayerByLocation_management(Speed_Limit_Layer, "WITHIN", Selected_LRSN_Route, "", "NEW_SELECTION", "NOT_INVERT")
 #
-# Attribute-based selection to replace the above spatial selection:
-arcpy.SelectLayerByAttribute_management(Speed_Limit_Layer, "NEW_SELECTION", MassDOT_route_query_string)
+# Attribute-based selection to replace the above spatial selection, if needed
+# arcpy.SelectLayerByAttribute_management(Speed_Limit_Layer, "NEW_SELECTION", MassDOT_route_query_string)
 
 arcpy.AddMessage("Generating speed limit events.")
 
@@ -390,10 +399,10 @@ arcpy.OverlayRouteEvents_lr(overlay_events_1, "route_id LINE from_meas to_meas",
 arcpy.MakeFeatureLayer_management(LRSE_Number_Travel_Lanes, Num_Lanes_Layer, "to_date IS NULL", "", "objectid objectid HIDDEN NONE;from_date from_date HIDDEN NONE;to_date to_date HIDDEN NONE;event_id event_id HIDDEN NONE;route_id route_id VISIBLE NONE;from_measure from_measure VISIBLE NONE;to_measure to_measure VISIBLE NONE;num_lanes num_lanes VISIBLE NONE;opp_lanes opp_lanes HIDDEN NONE;created_by created_by HIDDEN NONE;date_created date_created HIDDEN NONE;edited_by edited_by HIDDEN NONE;date_edited date_edited HIDDEN NONE;locerror locerror HIDDEN NONE;globalid globalid HIDDEN NONE;shape shape VISIBLE NONE;st_length(shape) st_length(shape) VISIBLE NONE")
 
 # Select Layer By Location: from Num_Lanes_Layer select records that lie WITHIN Selected_LRSN_Route
-# arcpy.SelectLayerByLocation_management(Num_Lanes_Layer, "WITHIN", Selected_LRSN_Route, "", "NEW_SELECTION", "NOT_INVERT")
+arcpy.SelectLayerByLocation_management(Num_Lanes_Layer, "WITHIN", Selected_LRSN_Route, "", "NEW_SELECTION", "NOT_INVERT")
 #
-# Attribute-based selection to replace the above spatial selection:
-arcpy.SelectLayerByAttribute_management(Num_Lanes_Layer, "NEW_SELECTION", MassDOT_route_query_string)
+# Attribute-based selection to replace the above spatial selection, if needed
+# arcpy.SelectLayerByAttribute_management(Num_Lanes_Layer, "NEW_SELECTION", MassDOT_route_query_string)
 
 arcpy.AddMessage("Generating number-of-lanes events.")
 
