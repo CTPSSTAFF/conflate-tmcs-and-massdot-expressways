@@ -9,3 +9,5 @@ csv_final/
 *.ini
 *.xlsx
 *.xls
+*.txt
+*.txt~
