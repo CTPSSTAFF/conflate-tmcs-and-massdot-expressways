@@ -4,7 +4,7 @@
 # to LRSN route geometry. This was found to be the case, for example, for SR2 EB and WB in the "LRSN + LRSE" data copied from
 # MassDOT on 19 December 2019.
 #
-# This script performs the conversion one 'route' at a time; the result is a set of FC's which is to subsequently combined
+# This script performs the conversion one 'route' at a time; the result are two sets of FC's, each set to be subsequently combined
 # into a single FC using the 'Merge' tool.
 #
 # Ben Krepp, attending metaphysician
@@ -12,11 +12,20 @@
 
 import arcpy
 
-# Full list of routes to process...
- route_list = [ 'I90 EB', 'I90 WB', 'I93 NB', 'I93 SB', 'I95 NB', 'I95 SB', 'I290 EB', 'I290 WB', 'I495 NB', 'I495 SB',
-                'US1 NB', 'US1 SB', 'US3 NB', 'US3 SB', 'US44 EB', 'US44 WB', 'SR2 EB', 'SR2 WB', 'SR3 NB', 'SR3 SB',
-                'SR24 NB', 'SR24 SB', 'SR140 NB', 'SR140 SB', 'SR146 NB', 'SR146 SB', 'SR213 EB', 'SR213 WB', 'N087 NB', 'N482 SB' ]
-               
+# Single (optional) parameter, specifying a file containing a newline-delimited list of MassDOT route_ids.  
+route_list_file_name = arcpy.GetParameterAsText(0)  
+if route_list_file_name != '':
+    f = open(route_list_file_name, 'r')
+    s = f.read()
+    route_list = s.split('\n')
+    for route_id in route_list:
+        arcpy.AddMessage(route_id)
+    # for   
+else:
+    route_list = [ 'I90 EB', 'I90 WB', 'I93 NB', 'I93 SB', 'I95 NB', 'I95 SB', 'I290 EB', 'I290 WB', 'I495 NB', 'I495 SB',
+                   'US1 NB', 'US1 SB', 'US3 NB', 'US3 SB', 'US44 EB', 'US44 WB', 'SR2 EB', 'SR2 WB', 'SR3 NB', 'SR3 SB',
+                   'SR24 NB', 'SR24 SB', 'SR140 NB', 'SR140 SB', 'SR146 NB', 'SR146 SB', 'SR213 EB', 'SR213 WB', 'N087 NB', 'N482 SB' ]
+# end_if
 
 # MassDOT LRSN_Routes - the route geometry here is assumed to be definitive
 #
