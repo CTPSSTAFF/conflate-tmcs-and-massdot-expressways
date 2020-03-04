@@ -85,7 +85,7 @@ for route_id in route_list:
                                  speed_limit_events_gdb + '\\' + sl_et_name, "route_id LINE from_measure to_measure", sl_layer_name)
     arcpy.CopyFeatures_management(sl_layer_name, speed_limit_gdb + '\\' + sl_fc_name)
     
-    arcpy.AddMessage('    Generationg number of travel lanes FC.')
+    arcpy.AddMessage('    Generating number of travel lanes FC.')
     arcpy.SelectLayerByAttribute_management(Num_Lanes_Layer, "NEW_SELECTION", MassDOT_route_query_string)
     arcpy.TableToTable_conversion("Num_Lanes_Layer", num_lanes_events_gdb, nl_et_name)
     arcpy.MakeRouteEventLayer_lr(MASSDOT_LRSN_Routes_19Dec2019, "route_id", 
