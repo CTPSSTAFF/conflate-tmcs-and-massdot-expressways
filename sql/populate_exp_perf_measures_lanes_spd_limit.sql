@@ -1,0 +1,2 @@
+-- populate_exp_perf_measures_lanes_spd_limit.sql
+UPDATE expressway_performance_measures INNER JOIN Inrix_2019_cmp_exp_roadinv_attrib ON expressway_performance_measures.TMC = Inrix_2019_cmp_exp_roadinv_attrib.tmc SET expressway_performance_measures.lanes = [num_lanes], expressway_performance_measures.lane_miles = [distance]*[num_lanes], expressway_performance_measures.spd_limit = [speed_limit];

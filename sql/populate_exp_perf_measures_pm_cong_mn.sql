@@ -1,0 +1,2 @@
+-- populate_exp_perf_measures_pm_cong_mn.sql
+UPDATE expressway_performance_measures INNER JOIN Inrix_2019_cmp_exp_cong_min_tmc_pm ON expressway_performance_measures.tmc = Inrix_2019_cmp_exp_cong_min_tmc_pm.tmc SET expressway_performance_measures.pm_cong_mn = [Inrix_2019_cmp_exp_cong_min_tmc_pm].[cong_min];
