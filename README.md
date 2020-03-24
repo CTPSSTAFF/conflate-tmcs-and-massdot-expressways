@@ -34,10 +34,7 @@ The fields of these records are:
                   See note below on how this value is harvested.
 11. num_lanes - Number of travel lanes for the event. Harvested from the MassDOT LRSE_Number_Travel_Lanes feature class.
                 See note below on how this value is harvested.
-12. towns - List of towns ("+"-delimited) through which the event passes. Harvested from CTPS 'towns_pb' layer.
-
-
-
+12. towns - A "+"-delimited list of towns through which the event passes. Harvested from CTPS 'towns_pb' feature class.
 
 ## Re-generation of MassDOT LRSE_ feature classes
 In the course of work on this project, we found that the MassDOT LRSE_ feature classes for 
@@ -67,48 +64,90 @@ Processing proceeds as follows:
 1. Select records from the MassDOT LRSN_Routes layer with the specified route_id
 2. Select records from the INRIX TMC layer with TMC IDs "IN" the list of TMCs
    specified in the TMC list file
-3. Produce a "TMC event table" by locating each TMC along the specified route_id;
+3. Produce a raw "TMC event table" by locating each TMC along the specified route_id;
    this process is performed "manually" in code rather than using the ESRI
    "Locate Features Along Routes" because we found that the tool does NOT
    handle locating features that are more than a very small distance from
    the specified route.
-4. Loate the towns_pb features along the specified route_id using the 
+4. Produce a final "TMC event table" by sorting the output of step (3) in 
+   ascending order on the from\_meas field.
+5. Loate the towns_pb features along the specified route_id using the 
    ESRI "Locate Features Along Routes" tool, producing a "towns event table".
-5. Overlay the "tmc events" with the "towns event table", producing an
+6. Overlay the "tmc events" with the "towns event table", producing an
    "overlay 1 event table."
-6. Select records from the LRSN_Speed_Limit layer that are WITHIN the specfied route_id;
+7. Select records from the LRSN_Speed_Limit layer that are WITHIN the specfied route_id;
    then locate these features along the specified route_id, producing a "speed limit event table."
-7. Overlay the "speed limit event table" with the "overlay 1 event table",
+8. Overlay the "speed limit event table" with the "overlay 1 event table",
    producing an "overlay 2 event table."
-8. Select records from the LRSN_Number_Lanes layer that are WITHIN the specfied route_id;
+9. Select records from the LRSN_Number_Lanes layer that are WITHIN the specfied route_id;
    then locate these features along the specified route_id, producing a "number of lanes event table."
-9. Overlay the "number of lanes event table" with the "overlay 2" event table, 
-   producing an "overlay 3" event table.
-10. Perform a few tidying-up opersation (see the code for details.)
-11. Sort the resulting event table in asending order on from_meas,
+10. Overlay the "number of lanes event table" with the "overlay 2" event table, 
+    producing an "overlay 3" event table.
+11. Perform a few tidying-up opersation (see the code for details.)
+12. Sort the resulting event table in asending order on from_meas,
     and add and calculate a 'calc_len' (length) field.
-12. Export the resulting table as a CSV file in the csv_intermediate directory
-13. Call the "helper" script "process_csv_file.py" to post-process the CSV
-    file containing the intermediate results:
+13. Export the resulting table as a CSV file in the csv_intermediate directory
+14. Call the "helper" script "process_csv_file.py" to post-process the CSV
+    file containing the intermediate results, and generate the final CSV
+    output in the csv_final directory.
 
-    
-    
+The "intermediate" CSV file contains 1..N records per TMC. Post-prcessing transforms 
+the "intermediate" CSV file into a "final" CSV file containinig _one_ record per TMC.
+Post processing performs the following opterations for each unique TMC ID in the inpt: 
+geneerate a single "+"-delimited string of town names, generate a speed_limit value,
+and generate a num_lanes value.
 
 ## Calculation of the speed_limit field
+Calculate the sum of the weighted speed_lim in each input record, where weighting is by the record's 
+fraction of total TMC length.Then round to a multiple of 5 MPH. 
+We take care to exclude records for which 'speed_lim' is 0 or 99:  0 indicates a place in which no 'speed_lim'
+event exisits; 99 is an illegal speed limit and is used by MassDOT  to indicate "no value". (MassDOT currently
+frowns on the use of <Null> event values.)
 
 ## Calculation of the num_lanes field
-
-
+Calculate the sum of the weighted num_lanes in each record, where weighting is by the record's 
+fraction of total TMC length. Then round the result (using math.ceil) to an integer.
 
 # Organization of the material in this directory
++ LRSE_Speed_Limit_events.gdb - GDB containing re-generated event tables for MassDOT LRSE_Speed_Limit
++ LRSE_Speed_Limit_FC_redux.gdb - GDB containing re-generated MassDOT LRSE_Speed_Limit feature class;
+  Note that this is generated one route at a time, and the individual feature classes are combined into
+  a single LRSE_Speed_Limit feature class subsequently.
++ LRSE_Number_Travel_Lanes_events.gdb - GDB containing re-generated event tables for MassDOT LRSE_Speed_Limit
++ LRSE_Number_Travel_Lanes_FC.gdb - GDB containing re-generated MassDOT LRSE_Number_Travel_Lanes feature class;
+  Note that this is generated one route at a time, and the individual feature classes are combined into
+  a single LRSE_Number_Travel_lanes feature class subsequently.
++ tmc_event_table_template.gdb - GDB containing a single table which is used as a template for
+  creating the TMC event tables for individual MassDOT route_ids
++ tmc_events.gdb - GDB containing generated TMC event tables;
+  This GDB contains 2 event tables for each MassDOT route_id: (1) a table containing the "raw"
+  results of locating a set of TMC features along a specified route_id, and (2) the results of
+  sorting the "raw" output in ascending order on the from_meas field. The name of the "raw" table is
+  given by "<route_id>\_tmc\_events\_raw"; the name of the final table is given by "<route_id>\_tmc\_events".
++ town_events.gdb - GDB containing generated "town" event tables
++ speed_limit_events.gdb - GDB containing generated "speed limit" event tables
++ num_lanes_events.gdb - GDB containing generated "number of lanes" event tables
++ overlay_1.gdb - GDB containing overlay of TMC and "town" event tables
++ overlay_2.gdb - GDB contaiing overlay of "overlay 1" and "speed limit" event tables
++ overlay_3.gdb - GDB containing overlay of "overlay 2" and "number of lanes" event tables
++ csv_intermediate - directory containing one CSV file per MassDOT route_id,  with "intermediate" results,
+  i.e., 1..N records per TMC
++ csv_final - directory containing one CSV file per MassDOT route_id, with "final" results,
+  i.e., 1 record per TMC
+  
++ conflated_data_from_RI.gdb -
 
+The following subdirectories are fossils from previous work on this processing pipeline.
+They are being retained (for now) for reference purposes only:
++ output_prep.gdb 
++ tmcs_from_sde.gdb
++ unit_test.gdb
++ misc.gdb
 
-# Tool to conflate INRIX TMCs, 'Tonws, Political Boundaries', and MassDOT LRSE_* data for expressways.
-
+## Usage summary: generate_tmc_events_for_expressways.py
 Usage: generate_tmc_events_for_expressways MassDOT_route_id TMC_list_file
   1. MassDOT_route_id is required
-  2. list_of_tmcs_file is optional 
-If list_of_tmcs_file is not provided, all TMCs in the inidcated route will be processed.
+  2. list_of_tmcs_file is required
 
 This script does the following:
   1. For a given MassDOT "route", generate an intermediate CSV file
