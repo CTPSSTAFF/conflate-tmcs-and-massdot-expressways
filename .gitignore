@@ -6,7 +6,7 @@ csv_intermediate/
 csv_final/
 *.xml
 *.csv
-#.csv~
+*.csv~
 *.ini
 *.xlsx
 *.xls
