@@ -1,2 +1,0 @@
--- populate_exp_perf_measures_pm_del_mi.sql
-UPDATE expressway_performance_measures INNER JOIN Inrix_2019_cmp_exp_delay_per_mile_pm ON expressway_performance_measures.tmc = Inrix_2019_cmp_exp_delay_per_mile_pm.tmc SET expressway_performance_measures.pm_del_mi = [Inrix_2019_cmp_exp_delay_per_mile_pm].[delay_per_mile];
