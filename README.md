@@ -24,9 +24,15 @@ The fields of these records are:
 1.  tmc - The TMC's ID string. 
 2.  tmctype - Harvested from the INRIX data. Currently unused; carried over in case it might prove useful downstream.
 3.  route_id - MassDOT route_id.
-4.  roadnum - Harvested from INRIX data. Indicates what in MassDOT terms is the 'route_number', though in a different format.
-5.  direction - Harvested from the INRIX data. Indicates what in MassDOT terms is the 'route_direction', though in a different format.
-6.  firstnm - Harvested from the INRIX data. {*** TBD: More needed here.)
+4.  roadnum - Harvested from INRIX data. Indicates what in MassDOT terms is the 'route_number', 
+    though in a different format.
+5.  direction - Harvested from the INRIX data. Indicates what in MassDOT terms is the 'route_direction', 
+    though in a different format.
+6.  firstnm - Harvested from the INRIX data. According to the INRIX metadata, this field is described as 
+    containing "The cross street and/or interchange associated with the internal segment of 5-digit location ID."
+    In practice, we have found that the accuracy of the descriptive text contained in this field varies.
+    It is being carried forward as a possible aid in populating the 'seg_begin' and 'seg_end' fields in the
+    feature classes read by the CMP performance dashboards.
 7.  from_meas - Starting measure (in miles) of the event.
 8.  to_meas - Ending measure (in miles) of the event. 
 9.  length - Length of the event (in miles); calculated as from_meas - to_meas.
@@ -35,7 +41,10 @@ The fields of these records are:
 11. num_lanes - Number of travel lanes for the event. Harvested from the MassDOT LRSE_Number_Travel_Lanes feature class.
                 See note below on how this value is harvested.
 12. towns - A "+"-delimited list of towns through which the event passes. Harvested from CTPS 'towns_pb' feature class.
-
+            The contents of this field are "+"-delimited rather than comma-delimited because we ran into difficulties
+            loading a comma-delimited field _within_ a CSV (comma-separatee-values) file into an MS Access database.
+            (Final computation of the CMP performance measures is done in an MS Access database.)
+            
 ## Re-generation of MassDOT LRSE_ feature classes
 In the course of work on this project, we found that the MassDOT LRSE_ feature classes for 
 Speed Limit and Number of Lanes had 'gotten out of synch' with the MassDOT LRSN routes geometry.
@@ -91,20 +100,22 @@ Processing proceeds as follows:
     file containing the intermediate results, and generate the final CSV
     output in the csv_final directory.
 
+## Post-processing
 The "intermediate" CSV file contains 1..N records per TMC. Post-prcessing transforms 
 the "intermediate" CSV file into a "final" CSV file containinig _one_ record per TMC.
-Post processing performs the following opterations for each unique TMC ID in the inpt: 
-geneerate a single "+"-delimited string of town names, generate a speed_limit value,
-and generate a num_lanes value.
+Post processing performs the following opterations for each unique TMC ID in the input intermediate CSV file: 
+1. generate a single "+"-delimited string of town names
+2. generate a speed_limit value
+3. generate a num_lanes value
 
-## Calculation of the speed_limit field
+### Calculation of the speed_limit field
 Calculate the sum of the weighted speed_lim in each input record, where weighting is by the record's 
 fraction of total TMC length.Then round to a multiple of 5 MPH. 
 We take care to exclude records for which 'speed_lim' is 0 or 99:  0 indicates a place in which no 'speed_lim'
 event exisits; 99 is an illegal speed limit and is used by MassDOT  to indicate "no value". (MassDOT currently
 frowns on the use of <Null> event values.)
 
-## Calculation of the num_lanes field
+### Calculation of the num_lanes field
 Calculate the sum of the weighted num_lanes in each record, where weighting is by the record's 
 fraction of total TMC length. Then round the result (using math.ceil) to an integer.
 
@@ -114,7 +125,7 @@ fraction of total TMC length. Then round the result (using math.ceil) to an inte
   Note that this is generated one route at a time, and the individual feature classes are combined into
   a single LRSE_Speed_Limit feature class subsequently.
 + LRSE_Number_Travel_Lanes_events.gdb - GDB containing re-generated event tables for MassDOT LRSE_Speed_Limit
-+ LRSE_Number_Travel_Lanes_FC.gdb - GDB containing re-generated MassDOT LRSE_Number_Travel_Lanes feature class;
++ LRSE_Number_Travel_Lanes_FC_redux.gdb - GDB containing re-generated MassDOT LRSE_Number_Travel_Lanes feature class;
   Note that this is generated one route at a time, and the individual feature classes are combined into
   a single LRSE_Number_Travel_lanes feature class subsequently.
 + tmc_event_table_template.gdb - GDB containing a single table which is used as a template for
@@ -134,8 +145,7 @@ fraction of total TMC length. Then round the result (using math.ceil) to an inte
   i.e., 1..N records per TMC
 + csv_final - directory containing one CSV file per MassDOT route_id, with "final" results,
   i.e., 1 record per TMC
-  
-+ conflated_data_from_RI.gdb -
++ conflated_data_from_RI.gdb - _NEEDS_TO_BE_DOCUMENTED_
 
 The following subdirectories are fossils from previous work on this processing pipeline.
 They are being retained (for now) for reference purposes only:
