@@ -112,8 +112,8 @@ Post processing performs the following opterations for each unique TMC ID in the
 Calculate the sum of the weighted speed_lim in each input record, where weighting is by the record's 
 fraction of total TMC length.Then round to a multiple of 5 MPH. 
 We take care to exclude records for which 'speed_lim' is 0 or 99:  0 indicates a place in which no 'speed_lim'
-event exisits; 99 is an illegal speed limit and is used by MassDOT  to indicate "no value". (MassDOT currently
-frowns on the use of <Null> event values.)
+event exists; 99 is an illegal speed limit and is used by MassDOT  to indicate "no value". (MassDOT currently
+frowns on the use of _NULL_ event values.)
 
 ### Calculation of the num_lanes field
 Calculate the sum of the weighted num_lanes in each record, where weighting is by the record's 
