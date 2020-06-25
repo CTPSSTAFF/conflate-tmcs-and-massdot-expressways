@@ -160,7 +160,7 @@ Usage: generate_tmc_events_for_expressways MassDOT_route_id TMC_list_file
   2. list_of_tmcs_file is required
   
 Files containing lists of TMCs for the express highway routes in the MPO area (and for all interstate routes state-wide)may be found in the directory:  
-\\lilliput\groups\Traffic_and_Design\11123 CMP 2019 INRIX\TMC_lists\expressways\quoted  
+__\\lilliput\groups\Traffic_and_Design\11123 CMP 2019 INRIX\TMC_lists\expressways\quoted__  
 The names of the files in this directory are self-explanatory, e.g., __i_90_eb_tmcs.txt__ contains the list of TMCs for I-90 Eastbound.
 
 This script does the following:
