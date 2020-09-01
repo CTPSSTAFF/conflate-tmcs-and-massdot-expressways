@@ -112,8 +112,8 @@ Post processing performs the following opterations for each unique TMC ID in the
 Calculate the sum of the weighted speed_lim in each input record, where weighting is by the record's 
 fraction of total TMC length.Then round to a multiple of 5 MPH. 
 We take care to exclude records for which 'speed_lim' is 0 or 99:  0 indicates a place in which no 'speed_lim'
-event exisits; 99 is an illegal speed limit and is used by MassDOT  to indicate "no value". (MassDOT currently
-frowns on the use of <Null> event values.)
+event exists; 99 is an illegal speed limit and is used by MassDOT  to indicate "no value". (MassDOT currently
+frowns on the use of _NULL_ event values.)
 
 ### Calculation of the num_lanes field
 Calculate the sum of the weighted num_lanes in each record, where weighting is by the record's 
@@ -158,14 +158,18 @@ They are being retained (for now) for reference purposes only:
 Usage: generate_tmc_events_for_expressways MassDOT_route_id TMC_list_file
   1. MassDOT_route_id is required
   2. list_of_tmcs_file is required
+  
+Files containing lists of TMCs for the express highway routes in the MPO area (and for all interstate routes state-wide)may be found in the directory:  
+__\\lilliput\groups\Traffic_and_Design\11123 CMP 2019 INRIX\TMC_lists\expressways\quoted__  
+The names of the files in this directory are self-explanatory, e.g., __i_90_eb_tmcs.txt__ contains the list of TMCs for I-90 Eastbound.
 
 This script does the following:
   1. For a given MassDOT "route", generate an intermediate CSV file
      containing the "overlay" of the following events onto it:
-      a. INRIX TMCs
-      b. Towns
-      c. Speed Limit
-      d. Number of travel lanes
+      1. INRIX TMCs
+      2. Towns
+      3. Speed Limit
+      4. Number of travel lanes
   2. Process the CSV file generated from step (1), producing a final output
      CSV file containing one record per TMC. 
      
