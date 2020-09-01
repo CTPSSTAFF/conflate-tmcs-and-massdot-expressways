@@ -27,13 +27,16 @@ else:
                    'SR24 NB', 'SR24 SB', 'SR140 NB', 'SR140 SB', 'SR146 NB', 'SR146 SB', 'SR213 EB', 'SR213 WB', 'N087 NB', 'N482 SB' ]
 # end_if
 
+# Connection file for read-only connection to ArcGIS 10.6 SDE mpodata.mpodata database
+sde_mpodata_ro_connection = r'\\lindalino\users\Public\Documents\Public ArcGIS\Database Connections\CTPS 10.6.sde'
+
 # MassDOT LRSN_Routes - the route geometry here is assumed to be definitive
 #
-MASSDOT_LRSN_Routes_19Dec2019 = r'\\lindalino\users\Public\Documents\Public ArcGIS\CTPS data from database servers for ITS\SDE 10.6.sde\mpodata.mpodata.CTPS_RoadInventory_for_INRIX_2019\mpodata.mpodata.MASSDOT_LRSN_Routes_19Dec2019'
+MASSDOT_LRSN_Routes_19Dec2019 = sde_mpodata_ro_connection + '\mpodata.mpodata.CTPS_RoadInventory_for_INRIX_2019\mpodata.mpodata.MASSDOT_LRSN_Routes_19Dec2019'
 
 # MassDOT speed limit LRSE - geometry here may be out of sync w.r.t. LRSN_Routes; event table data is assumed to be OK.
 #
-LRSE_Speed_Limit = r'\\lindalino\users\Public\Documents\Public ArcGIS\CTPS data from database servers for ITS\SDE 10.6.sde\mpodata.mpodata.CTPS_RoadInventory_for_INRIX_2019\mpodata.mpodata.LRSE_Speed_Limit'
+LRSE_Speed_Limit = sde_mpodata_ro_connection + '\mpodata.mpodata.CTPS_RoadInventory_for_INRIX_2019\mpodata.mpodata.LRSE_Speed_Limit'
 
 # Layer containing data selected from the above
 #
@@ -41,7 +44,7 @@ Speed_Limit_Layer = "Speed_Limit_Layer"
 
 # MassDOT number of travel lanes LRSE - geometry here may be out of sync w.r.t. LRSN_Routes; event table data is assumed to be OK.
 #
-LRSE_Number_Travel_Lanes = r'\\lindalino\users\Public\Documents\Public ArcGIS\CTPS data from database servers for ITS\SDE 10.6.sde\mpodata.mpodata.CTPS_RoadInventory_for_INRIX_2019\mpodata.mpodata.LRSE_Number_Travel_Lanes'
+LRSE_Number_Travel_Lanes = sde_mpodata_ro_connection + '\mpodata.mpodata.CTPS_RoadInventory_for_INRIX_2019\mpodata.mpodata.LRSE_Number_Travel_Lanes'
 # Layer containing data selected from the above
 
 Num_Lanes_Layer = "Num_Lanes_Layer"

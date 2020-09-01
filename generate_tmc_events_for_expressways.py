@@ -123,15 +123,18 @@ else:
 #
 base_dir = r'\\lilliput\groups\Data_Resources\conflate-tmcs-and-massdot-expressways'
 
+# Connection file for read-only connection to ArcGIS 10.6 SDE mpodata.mpodata database
+sde_mpodata_ro_connection = r'\\lindalino\users\Public\Documents\Public ArcGIS\Database Connections\CTPS 10.6.sde'
+
 # INPUT DATA: INRIX TMCs, MassDOT routes, MassDOT event layers (speed limit, number of lanes), CTPS towns political boundaries
 #
-# INRIX TMCs
-INRIX_MASSACHUSETTS_TMC_2019 = r'\\lindalino\users\Public\Documents\Public ArcGIS\CTPS data from database servers for ITS\SDE 10.6.sde\mpodata.mpodata.INRIX_MASSACHUSETTS_TMC_2019'
+# INRIX TMCs          
+INRIX_MASSACHUSETTS_TMC_2019 =  sde_mpodata_ro_connection + '\mpodata.mpodata.INRIX_MASSACHUSETTS_TMC_2019'
 # Layer containing TMCs selected from the above
 INRIX_TMCS = "INRIX_TMCS"
 
 # MassDOT LRSN_Routes
-MASSDOT_LRSN_Routes_19Dec2019 = r'\\lindalino\users\Public\Documents\Public ArcGIS\CTPS data from database servers for ITS\SDE 10.6.sde\mpodata.mpodata.CTPS_RoadInventory_for_INRIX_2019\mpodata.mpodata.MASSDOT_LRSN_Routes_19Dec2019'
+MASSDOT_LRSN_Routes_19Dec2019 = sde_mpodata_ro_connection + '\mpodata.mpodata.CTPS_RoadInventory_for_INRIX_2019\mpodata.mpodata.MASSDOT_LRSN_Routes_19Dec2019'
 # Layer containing route selected from the above
 Selected_LRSN_Route = "Selected LRSN Route"
 
@@ -155,7 +158,7 @@ LRSE_Number_Travel_Lanes = base_dir + '\\LRSE_Number_Travel_Lanes_FC_redux.gdb\L
 Num_Lanes_Layer = "Num Lanes Layer"
 
 # Towns political boundaries
-towns_pb_r = r'\\lindalino\users\Public\Documents\Public ArcGIS\CTPS data from database servers for ITS\SDE 10.6.sde\mpodata.mpodata.boundary\mpodata.mpodata.towns_pb_r'
+towns_pb_r = sde_mpodata_ro_connection + '\mpodata.mpodata.boundary\mpodata.mpodata.towns_pb_r'
 
 
 # OUTPUT DATA: Event tables and CSV file
