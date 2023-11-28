@@ -185,3 +185,7 @@ The third, pydash", requires explicit installation.
 We include an explicit "try: import pydash..." at the beginning of this module, 
 in order to notify the user if this library is not installed, and then exit.
 The fourth resides in the same directory as this script and process_csv_file.py.
+
+# Colophon
+This repository work documents conflation work done during the last monhts of 2019 and the first months of 2020.  
+Author: Ben Krepp (bkrepp@ctps.org)  
